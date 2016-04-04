@@ -3,13 +3,13 @@
 22
 allocate INT a 10
 allocate INT b 20
-allocate CHAR s 4 "h"
+allocate CHAR s 8 "hello!!"
 allocate CHAR s2 2 "!"
 add a 15
 add a b
 map
 print a
-strcat s "i"
+strcat s "world"
 print s
 strcat s s2
 print s

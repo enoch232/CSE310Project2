@@ -130,14 +130,13 @@ int hash_search(symbolTableEntry table[], string key, int hash_table_size){
     int found_index = -1;
     int probe = 0;
     for (probe = 0; probe != hash_table_size;probe++) {
-        
-        index_to_put_variable = ascii_total_value % hash_table_size + probe;
+        //ascii_total_value % hash_table_size + probe
+        index_to_put_variable = probe;
         if (table[index_to_put_variable].symbol == key) {
             found_index = index_to_put_variable;
             
         }
     }
-    
     return found_index;
     
     
@@ -158,7 +157,7 @@ bool is_integer(const std::string& s)
 int myMalloc(unsigned char table[], string variable_value, string variable_type, int offset, int block_size){
     if (variable_type == "INT"){
         int value = atoi(variable_value.c_str());
-        cout<<"value:"<<value<<endl;
+        //cout<<"value:"<<value<<endl;
         
         
         if (value/4294967296 >= 1){
@@ -181,10 +180,15 @@ int myMalloc(unsigned char table[], string variable_value, string variable_type,
         table[offset] = value;
     }else if(variable_type == "CHAR"){
         variable_value = variable_value.substr(1,variable_value.length()-2);
-        for(int l = 0;l<variable_value.length(); l++){
-            table[offset+l] = variable_value[l];
+        if (block_size > variable_value.length()){
+            for(int l = 0;l<variable_value.length(); l++){
+                table[offset+l] = variable_value[l];
+            }
+            table[offset+variable_value.length()] = 255;
+        }else{
+            cout<<"Error: Insufficient memory to allocate variable"<<endl;
         }
-        table[offset+variable_value.length()] = 255;
+        
     }else if(variable_type == "BST"){
         
         
@@ -233,6 +237,30 @@ int add_update(unsigned char table[], string variable_value, string variable_val
     
 }
 
+
+
+
+int string_update(unsigned char table[], string variable_value, string variable_value2, string variable_type, int offset, int block_size){
+    if(variable_type == "CHAR"){
+        
+        variable_value += variable_value2;
+        if (block_size > variable_value.length()){
+            for(int l = 0;l<variable_value.length(); l++){
+                table[offset+l] = variable_value[l];
+            }
+            table[offset+variable_value.length()] = 255;
+
+        }else{
+            cout<<"Error: LHS insufficient length to perform strcat"<<endl;
+        }
+            }else if(variable_type == "BST"){
+        
+        
+    }
+    return 0;
+    
+    
+}
 
 
 
@@ -307,7 +335,7 @@ int main(){
         command_type = readLine;
         
         if (command_type == "allocate"){
-            cout<<"ALLOCATE"<<endl;
+            //cout<<"ALLOCATE"<<endl;
             cin>>readLine;
             variable_type = readLine;
             if(variable_type == "INT"){
@@ -326,11 +354,13 @@ int main(){
                     freeblocks[0].blockSize = freeblocks[0].blockSize - 4;
                     freeblocks[0].offset = freeblocks[0].offset + 4;
 
-                    cout<<"Max Freeblock:"<<freeblocks[0].blockSize<<endl;
-                    cout<<"Position Freeblock:"<<freeblocks[0].offset<<endl;
+                    //cout<<"Max Freeblock:"<<freeblocks[0].blockSize<<endl;
+                    //cout<<"Position Freeblock:"<<freeblocks[0].offset<<endl;
+                    /* show hash table
                     for (int l = 0 ;l< t;l++){
                         cout<< hash_table[l].symbol<<" "<< hash_table[l].offset<<" "<<hash_table[l].noBytes <<endl;
                     }
+                     */
                 }
             
                 
@@ -357,11 +387,13 @@ int main(){
                     freeblocks[0].blockSize = freeblocks[0].blockSize - dividend*4;
                     freeblocks[0].offset = freeblocks[0].offset + dividend*4;
                     
-                    cout<<"Max Freeblock:"<<freeblocks[0].blockSize<<endl;
-                    cout<<"Position Freeblock:"<<freeblocks[0].offset<<endl;
+                    //cout<<"Max Freeblock:"<<freeblocks[0].blockSize<<endl;
+                    //cout<<"Position Freeblock:"<<freeblocks[0].offset<<endl;
+                    /*
                     for (int l = 0 ;l< t;l++){
                         cout<< hash_table[l].symbol<<" "<< hash_table[l].offset<<" "<<hash_table[l].noBytes <<endl;
                     }
+                     */
                     
                 }
                 
@@ -433,51 +465,52 @@ int main(){
         if(command_type == "print"){
             cin>>variable_name;
             int heap_index = hash_search(hash_table, variable_name, t);
-            int heap_offset = hash_table[heap_index].offset;
-            int heap_type = hash_table[heap_index].type;
-            int heap_noBytes = hash_table[heap_index].noBytes;
-            cout<<"PRINT:";
-            if (heap_type == INT){
-                int totalvalue = 0;
-                if (heap_type == 0){
-                    
-                    
-                    
-                    if(blocks[heap_offset+3]){
+            if (heap_index != -1){
+                int heap_offset = hash_table[heap_index].offset;
+                int heap_type = hash_table[heap_index].type;
+                int heap_noBytes = hash_table[heap_index].noBytes;
+                cout<<"PRINT:";
+                if (heap_type == INT){
+                    int totalvalue = 0;
+                    if (heap_type == 0){
                         
-                        totalvalue = totalvalue+ 16777216*blocks[heap_offset+3];
-                    }
-                    if(blocks[heap_offset+2]){
-                        totalvalue = totalvalue+ 65536*blocks[heap_offset+2];
-                    }
-                    if(blocks[heap_offset+1]){
-                        totalvalue = totalvalue+ 256*blocks[heap_offset+1];
-                    }
-                    if(blocks[heap_offset]){
                         
-                        totalvalue = totalvalue+ blocks[heap_offset+0];
+                        
+                        if(blocks[heap_offset+3]){
+                            
+                            totalvalue = totalvalue+ 16777216*blocks[heap_offset+3];
+                        }
+                        if(blocks[heap_offset+2]){
+                            totalvalue = totalvalue+ 65536*blocks[heap_offset+2];
+                        }
+                        if(blocks[heap_offset+1]){
+                            totalvalue = totalvalue+ 256*blocks[heap_offset+1];
+                        }
+                        if(blocks[heap_offset]){
+                            
+                            totalvalue = totalvalue+ blocks[heap_offset+0];
+                        }
+                        
+                        
                     }
                     
+                    cout<<totalvalue;
+                }
+                if (heap_type == CHAR){
+                    //cout<<"offset:"<<heap_offset<<endl;
+                    //cout<<"noBytes:"<<heap_noBytes<<endl;
+                    for(int k = heap_offset; k < heap_noBytes + heap_offset; k++){
+                        if (blocks[k] != 255 && blocks[k] != 0){
+                            printf("%c ", (blocks[k] & 0xFF));
+                        }
+                    }
                     
                 }
                 
-                cout<<totalvalue;
+                cout<<endl;
+            }else{
+                cout << "Error: \'"+ variable_name + "\' was freed"<<endl;
             }
-            if (heap_type == CHAR){
-                //cout<<"offset:"<<heap_offset<<endl;
-                //cout<<"noBytes:"<<heap_noBytes<<endl;
-                for(int k = heap_offset; k < heap_noBytes + heap_offset; k++){
-                    if (blocks[k] != 255 && blocks[k] != 0){
-                        printf("%c ", (blocks[k] & 0xFF));
-                    }
-                }
-                
-            }
-            
-            cout<<endl;
-            
-            
-            
         }
         if(command_type == "add"){
             cin>>variable_name;
@@ -564,9 +597,24 @@ int main(){
         if(command_type == "free"){
             cin>>variable_name;
             cout<<"FREE!"<<endl;
-            /*
-            //increasing the size of dynamic array by creating a new one and replacing the old one.
+            int heap_index = hash_search(hash_table, variable_name, t);
+            int heap_offset = hash_table[heap_index].offset;
+            int heap_type = hash_table[heap_index].type;
+            int heap_noBytes = hash_table[heap_index].noBytes;
+            //hash_table[heap_index].offset = -1;
+            hash_table[heap_index].type = CHAR;
+            //hash_table[heap_index].noBytes = 0;
+            for(int l = 0; l< SYMBOL_LENGTH; l++){
+                hash_table[heap_index].symbol[l] = 0;
+            }
             
+            for (int l = heap_offset; l <heap_offset+ heap_noBytes; l++){
+                blocks[l] = '@';
+            }
+            
+
+            //increasing the size of dynamic array by creating a new one and replacing the old one.
+            /*
             heapEntry *increasedfreeblocks = new heapEntry[blocklength+1];
             for (int l = 0;l< blocklength ;l++){
                 increasedfreeblocks[l] = freeblocks[l];
@@ -578,30 +626,77 @@ int main(){
                 freeblocks[l] = increasedfreeblocks[l];
             }
             cout<<"elements:"<<blocklength<<endl;
-            delete[] increasedfreeblocks;
-             */
+            delete[] increasedfreeblocks;*/
+            
+
         }
         if(command_type == "strcat"){
             cin>>variable_name;
             cin>>variable_name2;
-            
-            if (variable_name2[0] == '"'){
-                //straight string
-                
+            int heap_index = hash_search(hash_table, variable_name, t);
+            int heap_offset = hash_table[heap_index].offset;
+            int heap_type = hash_table[heap_index].type;
+            int heap_noBytes = hash_table[heap_index].noBytes;
+            string totalvalue_string = "";
+            string totalvalue_string1 = "";
+            if(heap_type == CHAR){
+                if (variable_name2[0] == '"'){
+                    //straight string
+                    
+                    for(int l = heap_offset; l<heap_offset+heap_noBytes; l++){
+                        if(blocks[l] != 255 && blocks[l] != 0){
+                            totalvalue_string += (blocks[l] & 0xFF);
+                        }
+                        
+                    }
+                    totalvalue_string1 = variable_name2.substr(1,variable_name2.length()-2);
+                    string_update(blocks, totalvalue_string, totalvalue_string1,"CHAR", heap_offset, heap_noBytes);
+                    
+                    
+                }else{
+                    string totalvalue_string = "";
+                    string totalvalue_string1 = "";
+                    for(int l = heap_offset; l<heap_offset+heap_noBytes; l++){
+                        if(blocks[l] != 255 && blocks[l] != 0){
+                            totalvalue_string += (blocks[l] & 0xFF);
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    
+                    //string variable
+                    int heap_index2 = hash_search(hash_table, variable_name2, t);
+                    int heap_offset2 = hash_table[heap_index2].offset;
+                    int heap_type2 = hash_table[heap_index2].type;
+                    int heap_noBytes2 = hash_table[heap_index2].noBytes;
+                    if(heap_type2 == CHAR){
+                        for(int l = heap_offset2; l<heap_offset2+heap_noBytes2; l++){
+                            if(blocks[l] != 255 && blocks[l] != 0){
+                                totalvalue_string1 += (blocks[l] & 0xFF);
+                            }
+                        }
+                        string_update(blocks, totalvalue_string, totalvalue_string1,"CHAR", heap_offset, heap_noBytes);
+                    }else{
+                        cout<<"Error: RHS of strcat must be type CHAR"<<endl;
+                    }
+                    
+                    
+                    
+                    
+                }
             }else{
-                //string variable
-                
+                cout<<"Error: LHS of strcat must be type CHAR."<<endl;
             }
-            cout<<"STRCAT!"<<endl;
+            
         }
         if(command_type == "compact"){
             cout<<"COMPACT!"<<endl;
         }
     }
    
-    
-    
-    
+
     
     delete[] blocks;
     return size_of_physical_block;
