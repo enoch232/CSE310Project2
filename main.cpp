@@ -584,6 +584,14 @@ int main(){
         if(command_type == "strcat"){
             cin>>variable_name;
             cin>>variable_name2;
+            
+            if (variable_name2[0] == '"'){
+                //straight string
+                
+            }else{
+                //string variable
+                
+            }
             cout<<"STRCAT!"<<endl;
         }
         if(command_type == "compact"){
