@@ -715,6 +715,13 @@ int main(){
         }
         if(command_type == "compact"){
             cout<<"COMPACT!"<<endl;
+            for (int l = 0; l <32 ;l ++){
+                cout<<blocks[l]<<endl;
+            }
+            
+            
+            
+            
         }
     }
    
