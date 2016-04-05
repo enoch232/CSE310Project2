@@ -1,25 +1,12 @@
 5
 11
-22
-allocate INT a 10
-allocate INT b 20
-allocate CHAR s 8 "hello!!"
-allocate CHAR s2 2 "!"
-add a 15
-add a b
-map
-print a
-strcat s "world"
-print s
-strcat s s2
-print s
-strcat s b
-map
-free s
-print s
+10
+allocate INT a 1
+allocate CHAR b 8 "HELLO!"
+allocate INT c 3
+allocate INT d 4
+allocate INT e 5
+allocate INT f 6
+free a
 free b
-map
-print b
-allocate INT c 10
-compact
 map

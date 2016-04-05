@@ -43,15 +43,20 @@ void max_heapify(heapEntry *array, int i, int n){
     
     int child, temp;
     temp = array[i].blockSize;
-    child = 2 * i;
+    child = 2 * i ;
+    cout<<"child:"<<child<<endl;
     while (child < n){
         if (child < n && array[child+1].blockSize > array[child].blockSize)
+            //check right side
             child = child + 1;
+        //if the parent is bigger than child.
         if (temp > array[child].blockSize)
             break;
+        //if child is bigger, we need to exchange.
         else if (temp <= array[child].blockSize){
+            //exchange process.
             array[child / 2].blockSize = array[child].blockSize;
-            child = 2 * child;
+            child = 2 * child ;
         }
     }
     array[child/2].blockSize = temp;
@@ -62,6 +67,7 @@ void build_maxheap(heapEntry *array,int arraylength){
         int i;
         for(i = arraylength/2; i >= 0; i--){
             max_heapify(array,i,arraylength);
+            
         }
     }else{
         return;
@@ -90,7 +96,7 @@ int hash_insert(symbolTableEntry table[], string key, int hash_table_size, strin
     int probe = 0;
     for (probe = 0; probe != hash_table_size;probe++) {
         index_to_put_variable = ascii_total_value % hash_table_size + probe;
-        if (table[index_to_put_variable].offset == -1) {
+        if (table[index_to_put_variable].type == -1) {
             for (int j = 0; j< SYMBOL_LENGTH; j++) {
                 table[index_to_put_variable].symbol[j] = key[j];
             }
@@ -291,16 +297,17 @@ int main(){
     
     
     //initial block starts at offset 0, and size of whole physical block.
-    heapEntry *freeblocks = new heapEntry[1];
-    freeblocks[0].blockSize = size_of_physical_block;
-    freeblocks[0].offset = 0;
-    
-    
-    
-    
+    heapEntry *freeblocks = new heapEntry[size_of_physical_block/4];
+
     for (int i = 0; i<size_of_physical_block; i++) {
         blocks[i] = 0;
     }
+    for (int i = 0; i <size_of_physical_block/4; i++){
+        freeblocks[i].blockSize = 0;
+        freeblocks[i].offset = 0;
+    }
+    freeblocks[0].blockSize = size_of_physical_block;
+    freeblocks[0].offset = 0;
 
     
     //creating struct symbolTableEntry hash table using variable t
@@ -308,6 +315,8 @@ int main(){
     //setting the offset equal to zero, for the purpose of matching later on by the offset.
     for(int i = 0; i<t;i ++){
         hash_table[i].offset = -1;
+        hash_table[i].type = -1;
+        hash_table[i].noBytes = 0;
     }
     
     
@@ -335,6 +344,7 @@ int main(){
         command_type = readLine;
         
         if (command_type == "allocate"){
+            
             //cout<<"ALLOCATE"<<endl;
             cin>>readLine;
             variable_type = readLine;
@@ -348,19 +358,22 @@ int main(){
                 if (freeblocks[0].blockSize <= 0){
                     cout<<"Insufficient memory to allocate variable"<<endl;
                 }else{
+                    
                     //since its an integer, reduce by 4
                     hash_insert(hash_table, variable_name,t,variable_type,freeblocks[0].offset, 4);
+
                     myMalloc(blocks, variable_value_string, variable_type, freeblocks[0].offset, 4);
                     freeblocks[0].blockSize = freeblocks[0].blockSize - 4;
                     freeblocks[0].offset = freeblocks[0].offset + 4;
-
                     //cout<<"Max Freeblock:"<<freeblocks[0].blockSize<<endl;
                     //cout<<"Position Freeblock:"<<freeblocks[0].offset<<endl;
-                    /* show hash table
-                    for (int l = 0 ;l< t;l++){
+                    // show hash table
+                    /*for (int l = 0 ;l< t;l++){
                         cout<< hash_table[l].symbol<<" "<< hash_table[l].offset<<" "<<hash_table[l].noBytes <<endl;
                     }
+                    cout<<endl;
                      */
+                    
                 }
             
                 
@@ -420,6 +433,11 @@ int main(){
                     int l = -1;
                     
                     for (l = 0; l<t; l++){
+                        /*if (hash_table[l].type == -1 && hash_table[l].noBytes>3 ){
+                            skip = hash_table[l].noBytes;
+                            type = hash_table[l].type;
+                        }*/
+
                         if (hash_table[l].offset == k ){
                             skip = hash_table[l].noBytes;
                             type = hash_table[l].type;
@@ -428,6 +446,7 @@ int main(){
                     if (skip == 0){
                         k++;
                         cout<<"00 ";
+                        
                     }
                     
                     for(int m = 0; m<skip; m++){
@@ -442,7 +461,7 @@ int main(){
                             
                         }else if (type == CHAR){
                             if (blocks[k] != 255 && blocks[k] != 0){
-                                printf("%c ", (blocks[k] & 0xFF));
+                                printf(" %c ", (blocks[k] & 0xFF));
                             }
                             
                             if (blocks[k] == 255){
@@ -452,6 +471,9 @@ int main(){
                             if (blocks[k] == 0){
                                 cout<<"00 ";
                             }
+                            
+                        }else if (type == -1){
+                            cout<<" @ ";
                         }
                         k++;
                         
@@ -506,6 +528,7 @@ int main(){
                     }
                     
                 }
+                
                 
                 cout<<endl;
             }else{
@@ -597,36 +620,35 @@ int main(){
         if(command_type == "free"){
             cin>>variable_name;
             cout<<"FREE!"<<endl;
-            int heap_index = hash_search(hash_table, variable_name, t);
-            int heap_offset = hash_table[heap_index].offset;
-            int heap_type = hash_table[heap_index].type;
-            int heap_noBytes = hash_table[heap_index].noBytes;
-            //hash_table[heap_index].offset = -1;
-            hash_table[heap_index].type = CHAR;
-            //hash_table[heap_index].noBytes = 0;
-            for(int l = 0; l< SYMBOL_LENGTH; l++){
-                hash_table[heap_index].symbol[l] = 0;
-            }
-            
-            for (int l = heap_offset; l <heap_offset+ heap_noBytes; l++){
-                blocks[l] = '@';
-            }
-            
 
-            //increasing the size of dynamic array by creating a new one and replacing the old one.
-            /*
-            heapEntry *increasedfreeblocks = new heapEntry[blocklength+1];
-            for (int l = 0;l< blocklength ;l++){
-                increasedfreeblocks[l] = freeblocks[l];
+            int heap_index = hash_search(hash_table, variable_name, t);
+            if (heap_index != -1){
+                int heap_offset = hash_table[heap_index].offset;
+                int heap_type = hash_table[heap_index].type;
+                int heap_noBytes = hash_table[heap_index].noBytes;
+                //hash_table[heap_index].offset = -1;
+                hash_table[heap_index].type = -1;
+                //hash_table[heap_index].noBytes = 0;
+                for(int l = 0; l< SYMBOL_LENGTH; l++){
+                    hash_table[heap_index].symbol[l] = 0;
+                }
+                
+                for (int l = heap_offset; l <heap_offset+ heap_noBytes; l++){
+                    blocks[l] = '@';
+                }
+                
+                
+                freeblocks[blocklength].offset = heap_offset;
+                freeblocks[blocklength].blockSize = heap_noBytes;
+                blocklength++;
+                cout<<"show free:"<<endl;
+                for (int l = 0; l< blocklength; l ++){
+                    cout<<l<<":"<<freeblocks[l].offset<<" "<<freeblocks[l].blockSize<<endl;
+                }
+                cout<<"elements:"<<blocklength<<endl;
+            }else{
+                cout<<"Error: there is no such variable"<<endl;
             }
-            //delete[] freeblocks;
-            blocklength++;
-            heapEntry *freeblocks = new heapEntry[blocklength];
-            for (int l = 0;l< blocklength ;l++){
-                freeblocks[l] = increasedfreeblocks[l];
-            }
-            cout<<"elements:"<<blocklength<<endl;
-            delete[] increasedfreeblocks;*/
             
 
         }
