@@ -1,12 +1,17 @@
 5
 11
-10
+13
 allocate INT a 1
-allocate CHAR b 8 "HELLO!"
+allocate INT b 2
 allocate INT c 3
 allocate INT d 4
 allocate INT e 5
-allocate INT f 6
+allocate CHAR c 6 "HELLO!"
+map
 free a
 free b
+compact 
 map
+allocate INT f 6
+map
+
